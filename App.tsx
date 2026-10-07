@@ -21,7 +21,7 @@ interface Shot extends QuestionCameraPhoto {
 const LABELS: Record<ShotVariant, string> = {
     original: 'Original (bug)',
     picker: 'A: system camera (ImagePicker)',
-    vision: 'C: VisionCamera focus({x,y})',
+    vision: 'B: VisionCamera focus({x,y})',
 };
 
 export default function App() {
@@ -80,7 +80,7 @@ export default function App() {
             <SafeAreaView style={styles.container}>
                 <StatusBar style="dark" />
                 <Text style={styles.title}>Camera focus test</Text>
-                <Text style={styles.hint}>Same object, same distance (5/10/15/20/30 cm, 1 m) in every variant. Variant B (expo-camera refocus hack) was tried and dropped — see git history.</Text>
+                <Text style={styles.hint}>Same object, same distance (10/15/20/30 cm, 1 m) in every variant.</Text>
 
                 <Btn label={LABELS.original} onPress={() => openExpoCamera('original')} danger />
                 <Btn label={LABELS.picker} onPress={openPicker} />

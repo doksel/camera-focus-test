@@ -1,77 +1,54 @@
-# Camera focus test — как запускать и проверять
+# Camera focus test
 
-Песочница для тестового задания Priority: «клиент жалуется, что в камере не работает фокус».
-Версии как у них: **Expo SDK 52, React Native 0.76.9, expo-camera 16**.
+Test bench for the Priority technical question: *"Client is complaining that focus does not work in the camera."*
+Same versions as the production app: **Expo SDK 52, React Native 0.76.9, expo-camera 16**.
 
-## Что внутри
+## What's inside
 
-| Кнопка | Файл | Что проверяем |
+| Button | File | What it shows |
 |---|---|---|
-| Original (bug) | `src/components/Camera/CameraView.tsx` | Их компонент **без изменений**. Воспроизводим баг: кружок рисуется, камера не фокусируется. |
-| A: system camera | `App.tsx` → `ImagePicker.launchCameraAsync` | Системная камера: настоящий tap-to-focus, вспышка, зум, авто-макро. Минимальный риск. |
-| C: VisionCamera | `src/components/Camera/VisionCameraView.tsx` | `camera.focus({x, y})`, вспышка, зум на UI-потоке, мульти-камера (ultra-wide для макро). |
+| Original (bug) | `src/components/Camera/CameraView.tsx` | The original component, **unchanged**. Reproduces the bug: the white circle is drawn on tap, but the camera does not refocus. |
+| A: system camera | `App.tsx` → `ImagePicker.launchCameraAsync` | The OS camera app: real tap-to-focus, flash, zoom. Lowest risk, but the camera UI depends on the device. |
+| B: VisionCamera | `src/components/Camera/VisionCameraView.tsx` | `react-native-vision-camera`: `camera.focus({ x, y })` at the tapped point, flash, zoom on the UI thread. Same props and the same white focus circle as the original, so it is a drop-in replacement. |
 
-`src/components/Global/LoadingIndicatorNew.tsx` и `src/services/index.ts` — заглушки, чтобы оригинальный файл работал без правок импортов.
+`src/components/Global/LoadingIndicatorNew.tsx` and `src/services/index.ts` are stubs so the original file runs with its imports untouched.
+`src/components/Preview/ZoomableImage.tsx` is a test-bench helper for inspecting the captured photo (pinch / drag / double-tap); it is not part of the fix.
 
-В варианте C сверху зелёным выводится отладка: какие объективы в виртуальном устройстве, `minFocusDistance` (см) и результат последнего `focus()`. Это же пишется в консоль Metro (`[VisionCamera] device`).
+Variant B shows debug info at the top (lenses in use, `minFocusDistance` in cm, result of the last `focus()` call). The same is logged to Metro as `[VisionCamera] device`.
 
-## Что пробовали и отбросили
+**Also tried:** keeping `expo-camera` and toggling `autofocus` `off` → `on` on tap to force a refocus. `expo-camera` (SDK 52) has no focus-at-point API, so the tap position is not used. On a real device (Xiaomi 24117RN76E) the camera did not refocus, so this approach was dropped. The code is in the first commit (`git show HEAD~2:src/components/Camera/CameraViewRefocus.tsx`).
 
-**B: expo-camera + refocus hack.** Оригинал, в котором при тапе `autofocus` переключается `off` → `on`, чтобы камера заново запустила автофокус. Фокуса по точке в expo-camera (SDK 52) нет, поэтому координаты тапа всё равно не используются. На реальном устройстве (Xiaomi 24117RN76E) не помогло: картинка не перефокусируется, рисуется только белый кружок. Код сохранён в первом коммите (`git show HEAD~1:src/components/Camera/CameraViewRefocus.tsx`).
+## Running
 
-## Запуск
-
-Камера не работает в симуляторе, а Expo Go для SDK 52 уже не подходит, поэтому нужен **dev build на реальном телефоне**.
+The camera does not work in a simulator, and Expo Go no longer supports SDK 52, so you need a **dev build on a real phone**.
 
 ```bash
-cd ~/Documents/Claude/Projects/CameraFocusTest
 npm install
 
-# Android: телефон по USB, включена отладка по USB
-npx expo run:android --device
+# Android: phone connected via USB (or adb over Wi-Fi), USB debugging enabled
+npm run android
 
-# iOS: iPhone по кабелю, Xcode, в Xcode выбрать свою Team для подписи
-npx expo run:ios --device
+# iOS: iPhone connected, Xcode installed, signing Team selected in Xcode
+npm run ios
 ```
 
-`expo run` сам сделает `prebuild` (создаст папки `ios/` и `android/` с нативными плагинами камеры).
-Если поменял `app.json` или зависимости, пересобери: `npx expo prebuild --clean`, затем снова `run`.
+`expo run` runs `prebuild` automatically (generates `ios/` and `android/` with the camera native plugins).
+After changing `app.json` or native dependencies, rebuild: `npx expo prebuild --clean`, then `run` again.
 
-## Чек-лист
+## Test checklist
 
-**Фокус (главное).** Один и тот же объект с мелким текстом (этикетка, серийный номер) во всех вариантах:
-- [ ] Расстояния 5, 10, 15, 20, 30 см и 1 м. Для сравнения то же самое в системной камере телефона.
-- [ ] Тап на близкий объект, потом на дальний: меняется ли резкость.
-- [ ] Быстрые повторные тапы: нет зависаний и ошибок (в C ожидаемо `canceled by new tap`).
-- [ ] Смотреть **итоговое фото** (тап по миниатюре, на iOS можно зумить), а не только превью.
-- [ ] Запомнить, с какого расстояния оригинал начинает мылить: если это ≈ `minFocus` из варианта C, причина в дистанции фокусировки, а не в коде.
+**Focus**, with the same object with small text (label, serial number) in every variant:
+- [ ] Distances 10, 15, 20, 30 cm and 1 m. Compare with the phone's own camera app.
+- [ ] Tap a near object, then a far one: the sharp area follows the tap.
+- [ ] Rapid repeated taps: no freezes or errors (in B, `canceled by new tap` is expected).
+- [ ] Check the **captured photo** (tap the thumbnail, pinch to zoom), not just the preview.
 
-**Вспышка:**
-- [ ] auto / on / off, в темноте и при свете. Вспышка срабатывает именно на снимке.
+**Flash:**
+- [ ] auto / on / off, in the dark and in daylight. The flash fires on the actual shot.
 
-**Зум:**
-- [ ] Pinch и кнопка уровней. Плавно ли, не сбивается ли фокус после зума.
-- [ ] В C: при старте показывается 1.0x (а не 0.5x), кнопка проходит 0.5x → 1x → 2x → 5x (сколько позволяет телефон).
+**Zoom:**
+- [ ] Pinch and the zoom button, range **1x–10x**. Zoom is smooth and focus still works after zooming.
 
-**Жизненный цикл:**
-- [ ] Закрыть и снова открыть камеру: зум, фокус, вспышка сброшены.
-- [ ] Свернуть и развернуть приложение с открытой камерой.
-- [ ] Отказ в разрешении на камеру (удалить приложение и поставить заново).
-
-**Производительность:**
-- [ ] React DevTools Profiler (`j` в терминале Metro) во время pinch: оригинал ре-рендерит весь компонент, в C — только бейдж зума.
-
-## Таблица результатов (заполнить)
-
-| Устройство / ОС | Вариант | Фокус вблизи (мин. резкое расстояние) | Tap-to-focus | Вспышка | Зум | Заметки |
-|---|---|---|---|---|---|---|
-| | Original | | | | | |
-| | A | | | | | |
-| | C | | | | | |
-
-## Что важно знать
-
-- **VisionCamera закреплён на v4 (`~4.7.3`).** v5 требует Nitro Modules и более новый RN — с RN 0.76 не годится. Если `npm install` или сборка ругаются на v4, это тоже результат для ответа: риск новой нативной зависимости в легаси-приложении.
-- **Frame processors выключены** (`enableFrameProcessors: false` в `app.json`), поэтому `react-native-worklets-core` не нужен.
-- Для проверки гипотезы с макро нужен **iPhone Pro (13 Pro и новее)**. На других телефонах мульти-камера просто выберет обычный объектив.
-- Снимай экран (screen recording) «до / после». Короткое видео в ответе интервьюеру — сильный аргумент.
+**Lifecycle:**
+- [ ] Close and reopen the camera: zoom, focus and flash are reset.
+- [ ] Background and foreground the app while the camera is open.

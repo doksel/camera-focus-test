@@ -1,4 +1,4 @@
-// VARIANT C: react-native-vision-camera (v4) — real tap-to-focus at the tapped point,
+// VARIANT B: react-native-vision-camera (v4) — real tap-to-focus at the tapped point,
 // flash, native zoom driven on the UI thread (no React re-render per pinch frame),
 // and a multi-lens virtual device so iOS can switch to the ultra-wide (macro) lens up close.
 // Same props as the original CameraView, so it is a drop-in replacement.
