@@ -6,11 +6,10 @@ import { useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import OriginalCameraView, { QuestionCameraPhoto } from './src/components/Camera/CameraView';
-import RefocusCameraView from './src/components/Camera/CameraViewRefocus';
 import VisionCameraView from './src/components/Camera/VisionCameraView';
 import ZoomableImage from './src/components/Preview/ZoomableImage';
 
-type Variant = 'original' | 'refocus' | 'vision';
+type Variant = 'original' | 'vision';
 type ShotVariant = Variant | 'picker';
 
 interface Shot extends QuestionCameraPhoto {
@@ -22,7 +21,6 @@ interface Shot extends QuestionCameraPhoto {
 const LABELS: Record<ShotVariant, string> = {
     original: 'Original (bug)',
     picker: 'A: system camera (ImagePicker)',
-    refocus: 'B: expo-camera + refocus hack',
     vision: 'C: VisionCamera focus({x,y})',
 };
 
@@ -82,11 +80,10 @@ export default function App() {
             <SafeAreaView style={styles.container}>
                 <StatusBar style="dark" />
                 <Text style={styles.title}>Camera focus test</Text>
-                <Text style={styles.hint}>Same object, same distance (5/10/15/20/30 cm, 1 m) in every variant.</Text>
+                <Text style={styles.hint}>Same object, same distance (5/10/15/20/30 cm, 1 m) in every variant. Variant B (expo-camera refocus hack) was tried and dropped — see git history.</Text>
 
                 <Btn label={LABELS.original} onPress={() => openExpoCamera('original')} danger />
                 <Btn label={LABELS.picker} onPress={openPicker} />
-                <Btn label={LABELS.refocus} onPress={() => openExpoCamera('refocus')} />
                 <Btn label={LABELS.vision} onPress={() => setOpen('vision')} />
 
                 <Text style={styles.section}>Shots ({shots.length}) — tap to inspect at full size</Text>
@@ -107,7 +104,6 @@ export default function App() {
                 />
 
                 <OriginalCameraView visible={open === 'original'} onClose={close} onCapture={onCapture} cameraIsCapturing={false} showLoader={false} />
-                <RefocusCameraView visible={open === 'refocus'} onClose={close} onCapture={onCapture} cameraIsCapturing={false} showLoader={false} />
                 <VisionCameraView visible={open === 'vision'} onClose={close} onCapture={onCapture} cameraIsCapturing={false} showLoader={false} />
 
                 <Modal visible={!!preview} onRequestClose={() => setPreview(null)} animationType="fade">
