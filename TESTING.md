@@ -16,13 +16,14 @@ Same versions as the production app: **Expo SDK 52, React Native 0.76.9, expo-ca
 
 Variant B shows debug info at the top (lenses in use, `minFocusDistance` in cm, result of the last `focus()` call). The same is logged to Metro as `[VisionCamera] device`.
 
-**Also tried:** keeping `expo-camera` and toggling `autofocus` `off` → `on` on tap to force a refocus. `expo-camera` (SDK 52) has no focus-at-point API, so the tap position is not used. On a real device (Xiaomi 24117RN76E) the camera did not refocus, so this approach was dropped. The code is in the first commit (`git show HEAD~2:src/components/Camera/CameraViewRefocus.tsx`).
+**Also tried:** keeping `expo-camera` and toggling `autofocus` `off` → `on` on tap to force a refocus. `expo-camera` (SDK 52) has no focus-at-point API, so the tap position is not used. On a real device (Xiaomi 24117RN76E) the camera did not refocus, so this approach was dropped. The code is in the first commit (`git show 2b523a3:src/components/Camera/CameraViewRefocus.tsx`).
 
 ## Running
 
 The camera does not work in a simulator, and Expo Go no longer supports SDK 52, so you need a **dev build on a real phone**.
 
 ```bash
+cd CameraFocusTest
 npm install
 
 # Android: phone connected via USB (or adb over Wi-Fi), USB debugging enabled
@@ -34,21 +35,3 @@ npm run ios
 
 `expo run` runs `prebuild` automatically (generates `ios/` and `android/` with the camera native plugins).
 After changing `app.json` or native dependencies, rebuild: `npx expo prebuild --clean`, then `run` again.
-
-## Test checklist
-
-**Focus**, with the same object with small text (label, serial number) in every variant:
-- [ ] Distances 10, 15, 20, 30 cm and 1 m. Compare with the phone's own camera app.
-- [ ] Tap a near object, then a far one: the sharp area follows the tap.
-- [ ] Rapid repeated taps: no freezes or errors (in B, `canceled by new tap` is expected).
-- [ ] Check the **captured photo** (tap the thumbnail, pinch to zoom), not just the preview.
-
-**Flash:**
-- [ ] auto / on / off, in the dark and in daylight. The flash fires on the actual shot.
-
-**Zoom:**
-- [ ] Pinch and the zoom button, range **1x–10x**. Zoom is smooth and focus still works after zooming.
-
-**Lifecycle:**
-- [ ] Close and reopen the camera: zoom, focus and flash are reset.
-- [ ] Background and foreground the app while the camera is open.
