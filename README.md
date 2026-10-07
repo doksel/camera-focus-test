@@ -9,7 +9,9 @@ Same versions as the production app: **Expo SDK 52, React Native 0.76.9, expo-ca
 |---|---|---|
 | Original (bug) | `src/components/Camera/CameraView.tsx` | The original component, **unchanged**. Reproduces the bug: the white circle is drawn on tap, but the camera does not refocus. |
 | A: system camera | `App.tsx` → `ImagePicker.launchCameraAsync` | The OS camera app: real tap-to-focus, flash, zoom. Lowest risk, but the camera UI depends on the device. |
-| B: VisionCamera | `src/components/Camera/VisionCameraView.tsx` | `react-native-vision-camera`: `camera.focus({ x, y })` at the tapped point, flash, zoom on the UI thread. Same props and the same white focus circle as the original, so it is a drop-in replacement. |
+| B: VisionCamera | `src/components/Camera/VisionCameraView.tsx` | The original component switched to `react-native-vision-camera`, changing only the lines tied to the camera API. The fix itself is one line: `camera.focus({ x, y })` at the tapped point. Flash, zoom (1x–5x), gestures, props and UI are unchanged, so it is a drop-in replacement. |
+
+To see exactly what changed: `git diff --no-index src/components/Camera/CameraView.tsx src/components/Camera/VisionCameraView.tsx`
 
 `src/components/Global/LoadingIndicatorNew.tsx` and `src/services/index.ts` are stubs so the original file runs with its imports untouched.
 `src/components/Preview/ZoomableImage.tsx` is a test-bench helper for inspecting the captured photo (pinch / drag / double-tap); it is not part of the fix.

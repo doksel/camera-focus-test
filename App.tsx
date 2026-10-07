@@ -82,7 +82,7 @@ export default function App() {
 
                 <Button label={LABELS.original} onPress={() => openExpoCamera('original')} danger />
                 <Button label={LABELS.picker} onPress={openPicker} />
-                <Button label={LABELS.vision} onPress={() => setOpen('vision')} />
+                <Button label={LABELS.vision} onPress={() => openExpoCamera('vision')} />
 
                 <Text style={styles.section}>Shots ({shots.length}) — tap to inspect at full size</Text>
                 <FlatList
