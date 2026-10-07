@@ -48,13 +48,11 @@ export default function App() {
     const openPicker = async () => {
         try {
             const perm = await ImagePicker.requestCameraPermissionsAsync();
-            console.log('[Picker] permission', perm);
             if (!perm.granted) {
                 Alert.alert('Camera permission', `status: ${perm.status}, canAskAgain: ${perm.canAskAgain}`);
                 return;
             }
             const res = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 1 });
-            console.log('[Picker] result', JSON.stringify(res));
             if (!res.canceled && res.assets[0]) {
                 const a = res.assets[0];
                 addShot('picker', { uri: a.uri, width: a.width, height: a.height });
@@ -82,9 +80,9 @@ export default function App() {
                 <Text style={styles.title}>Camera focus test</Text>
                 <Text style={styles.hint}>Same object, same distance (10/15/20/30 cm, 1 m) in every variant.</Text>
 
-                <Btn label={LABELS.original} onPress={() => openExpoCamera('original')} danger />
-                <Btn label={LABELS.picker} onPress={openPicker} />
-                <Btn label={LABELS.vision} onPress={() => setOpen('vision')} />
+                <Button label={LABELS.original} onPress={() => openExpoCamera('original')} danger />
+                <Button label={LABELS.picker} onPress={openPicker} />
+                <Button label={LABELS.vision} onPress={() => setOpen('vision')} />
 
                 <Text style={styles.section}>Shots ({shots.length}) — tap to inspect at full size</Text>
                 <FlatList
@@ -125,7 +123,7 @@ export default function App() {
     );
 }
 
-const Btn = ({ label, onPress, danger }: { label: string; onPress: () => void; danger?: boolean }) => (
+const Button = ({ label, onPress, danger }: { label: string; onPress: () => void; danger?: boolean }) => (
     <TouchableOpacity style={[styles.btn, danger && styles.btnDanger]} onPress={onPress}>
         <Text style={styles.btnText}>{label}</Text>
     </TouchableOpacity>

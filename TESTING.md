@@ -14,7 +14,7 @@ Same versions as the production app: **Expo SDK 52, React Native 0.76.9, expo-ca
 `src/components/Global/LoadingIndicatorNew.tsx` and `src/services/index.ts` are stubs so the original file runs with its imports untouched.
 `src/components/Preview/ZoomableImage.tsx` is a test-bench helper for inspecting the captured photo (pinch / drag / double-tap); it is not part of the fix.
 
-Variant B shows debug info at the top (lenses in use, `minFocusDistance` in cm, result of the last `focus()` call). The same is logged to Metro as `[VisionCamera] device`.
+Variant B shows debug info at the top (lenses in use, `minFocusDistance` in cm, result of the last `focus()` call).
 
 **Also tried:** keeping `expo-camera` and toggling `autofocus` `off` → `on` on tap to force a refocus. `expo-camera` (SDK 52) has no focus-at-point API, so the tap position is not used. On a real device (Xiaomi 24117RN76E) the camera did not refocus, so this approach was dropped. The code is in the first commit (`git show 2b523a3:src/components/Camera/CameraViewRefocus.tsx`).
 

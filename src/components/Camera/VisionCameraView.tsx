@@ -99,22 +99,6 @@ const VisionCameraView: React.FC<CameraViewProps> = ({ visible, onClose, onCaptu
         }
     }, [visible, neutralZoom, zoom, baseZoom]);
 
-    useEffect(() => {
-        if (device) {
-            // Useful while debugging on the client's phone model.
-            console.log('[VisionCamera] device', {
-                name: device.name,
-                physicalDevices: device.physicalDevices,
-                supportsFocus: device.supportsFocus,
-                minFocusDistanceCm: device.minFocusDistance,
-                hasFlash: device.hasFlash,
-                minZoom: device.minZoom,
-                neutralZoom: device.neutralZoom,
-                maxZoom: device.maxZoom,
-            });
-        }
-    }, [device]);
-
     useEffect(() => () => {
         if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
     }, []);
