@@ -74,7 +74,6 @@ const VisionCameraView: React.FC<CameraViewProps> = ({ visible, onClose, onCaptu
     const [flash, setFlash] = useState<'auto' | 'on' | 'off'>('auto');
     const [isCapturing, setIsCapturing] = useState(false);
     const [focusIndicator, setFocusIndicator] = useState({ x: 0, y: 0, visible: false });
-    const [lastFocusResult, setLastFocusResult] = useState<string>('—');
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const minZoom = device?.minZoom ?? 1;
@@ -95,7 +94,6 @@ const VisionCameraView: React.FC<CameraViewProps> = ({ visible, onClose, onCaptu
             baseZoom.value = neutralZoom;
             setFocusIndicator({ x: 0, y: 0, visible: false });
             setIsCapturing(false);
-            setLastFocusResult('—');
         }
     }, [visible, neutralZoom, zoom, baseZoom]);
 
@@ -126,20 +124,12 @@ const VisionCameraView: React.FC<CameraViewProps> = ({ visible, onClose, onCaptu
             if (focusTimeoutRef.current) clearTimeout(focusTimeoutRef.current);
             focusTimeoutRef.current = setTimeout(() => setFocusIndicator(p => ({ ...p, visible: false })), 1000);
 
-            if (!device?.supportsFocus) {
-                setLastFocusResult('device does not support focus');
-                return;
-            }
+            if (!device?.supportsFocus) return;
             try {
                 await cameraRef.current?.focus({ x, y });
-                setLastFocusResult(`ok @ ${Math.round(x)},${Math.round(y)}`);
             } catch (e) {
                 // A new tap before the previous focus finished cancels it — expected, not an error.
-                if (e instanceof CameraCaptureError && e.code === 'capture/focus-canceled') {
-                    setLastFocusResult('canceled by new tap');
-                    return;
-                }
-                setLastFocusResult(`error: ${String(e)}`);
+                if (e instanceof CameraCaptureError && e.code === 'capture/focus-canceled') return;
                 console.warn('[VisionCamera] focus failed', e);
             }
         },
@@ -189,11 +179,6 @@ const VisionCameraView: React.FC<CameraViewProps> = ({ visible, onClose, onCaptu
             <GestureHandlerRootView style={{ flex: 1 }}>
                 <View style={styles.cameraScreenContainer}>
                     <View style={styles.cameraHeader}>
-                        <Text style={styles.debugText} numberOfLines={3}>
-                            {device
-                                ? `${device.physicalDevices.join(' + ')}\nminFocus: ${device.minFocusDistance ?? '?'} cm · focus: ${lastFocusResult}`
-                                : 'No camera device'}
-                        </Text>
                         <TouchableOpacity onPress={toggleFlash} style={styles.flashButton} disabled={!device?.hasFlash}>
                             <MaterialIcons name={flashIconName} style={styles.flashIcon} />
                         </TouchableOpacity>
@@ -225,7 +210,7 @@ const VisionCameraView: React.FC<CameraViewProps> = ({ visible, onClose, onCaptu
                             </GestureDetector>
                         ) : (
                             <View style={styles.center}>
-                                <Text style={styles.debugText}>{hasPermission ? 'No back camera found' : 'Waiting for camera permission…'}</Text>
+                                <Text style={styles.messageText}>{hasPermission ? 'No back camera found' : 'Waiting for camera permission…'}</Text>
                             </View>
                         )}
                     </View>
@@ -254,13 +239,12 @@ const styles = StyleSheet.create({
     cameraHeader: {
         height: 80,
         backgroundColor: '#000',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-end',
         alignItems: 'flex-end',
-        paddingHorizontal: 20,
+        paddingRight: 20,
         paddingBottom: 10,
     },
-    debugText: { color: '#9f9', fontSize: 11, flex: 1, marginRight: 12 },
+    messageText: { color: 'white' },
     cameraArea: { flex: 1, overflow: 'hidden' },
     center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     cameraFooter: {
